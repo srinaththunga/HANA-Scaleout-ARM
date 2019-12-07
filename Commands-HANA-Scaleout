@@ -1,0 +1,155 @@
+************************Commands Text File for HANA Scaleout****************************************
+
+
+******************************Task 3:	Mount Azure Netapp Files in Master Node*************************
+
+Step 3.9:	Activate the SUSE Linux:
+
+	SUSEConnect -r 4FFDCC436AEF3C -e naarayanaa.lk@paripoorna.in
+	
+	
+	
+Step 3.10:	Update the SUSE Libraries:
+	
+	zypper update	 
+	
+	
+
+Step 3.13:	Mount the Azure NetApp files:
+
+	vim 	/etc/fstab
+	
+	<<Azure Netapp Mount Volume>>  /hana   nfs      rw,sync,hard,intr     0 0
+	
+	:wq  <<<<<Save & Exit >>>>>
+	
+
+
+**********************************Task 4:	Install HANA Studio in Windows JumpBox**************************
+	
+Step 4.3:	Connect the Azure Storage Explorer:
+
+	DisplayName:			software
+
+	StorageAccount Name:	others2019
+
+	Key:					UzuOqP7UEjAwjNRlxsC9GI7vmjcFom5ib/misaSkAVBCJzVvUdb44R+5fKw6cMCFLf23EcTfnVW13WFwi8pCtQ==
+
+	
+
+
+
+************************************Task 5:	Install HANA Database in Master Node*******************************
+
+
+Step 5.4:	Mount the Storage Account to Install HANA Database:
+
+********************************East US2 & East US*******************************
+
+	sudo mount -t cifs //softwarees.file.core.windows.net/softwares  /software  -o vers=3.0,username=softwarees,password=rI4pZWk5IvYU4rt93YjX9fikJBBPPaiXVmhu07rBzHaaFE9s2enYyiqodjvhtuehYi6rJyAmiMGokzKazy+KHg==,dir_mode=0777,file_mode=0777,sec=ntlmssp
+
+
+********************************Australia East*******************************
+
+
+	sudo mount -t cifs //softwareae.file.core.windows.net/softwareae /software  -o vers=3.0,username=softwareae,password=+ZcJPIUXEIx72vrVMKsVSjoFtbUo/RPEDzH89oNKNSl99/VfgSE/M/fJWMfwRurrALjQot8Bn2G8KChhSwSOUQ==,dir_mode=0777,file_mode=0777,sec=ntlmssp
+
+
+********************************UK South*************************************
+
+
+	sudo mount -t cifs //softwareuks.file.core.windows.net/softwareuk /software  -o vers=3.0,username=softwareuks,password=qQqIGEt6qc/PM5zlgKP5nQZJurS76SzNXukL4mDP2tb8QG9YgNsqwZj2iOXxib3qI59Uj0VX7TswwOCpxjNU8A==,dir_mode=0777,file_mode=0777,sec=ntlmssp
+
+
+********************************Southeast Asia**********************************
+
+	sudo mount -t cifs //softwaresilt.file.core.windows.net/software  /software  -o vers=3.0,username=softwaresilt,password=H5tUmravg0/jEOg6p9RRHOQ6i0aHEEPtcglggRJXc/x5nthYdR4Isi4pL4OvoMFSiddAzKi7RbuRExW1L5HoPw==,dir_mode=0777,file_mode=0777,sec=ntlmssp
+
+
+********************************West US2****************************************
+
+	sudo mount -t cifs //softwarewus.file.core.windows.net/softwarewus2  /software  -o vers=3.0,username=softwarewus,password=y31E0viKAjBCFXJEoVQmh7PJS6026fQsNOkDY+RRKPHp4kR5O8y0S1bvqxJMsoqMQU3c5aDcmp0FJTAJ9erJrg==,dir_mode=0777,file_mode=0777,sec=ntlmssp
+	
+	
+	
+	
+***********************************************Copy the HANA Binaries into Local Machine*******************************************************	
+
+	mkdir 	/binaries
+	
+
+For Southeast Asia:
+
+	cp -rf /software/51052325/DATA_UNITS/ /binaries/
+
+	
+For others:
+
+	cp -rf /software/DATA_UNITS/ /binaries/
+
+***********************************************Task 6:	Add the Worker Node in Hana database*******************************************************
+
+
+Step 6.1. 	Go to HANA Installation Directory:
+
+	cd   /hana/shared/S03/global/hdb/install/bin/
+
+Step 6.4.	Listeninterface Parameter Set
+
+		hdbnsutil -reconfig --hostnameResolution=global
+		
+
+
+***********************************************Task 7: Add the Standby Node in Hana database*******************************************************
+
+Step 7.1. 	Go to HANA Installation Directory:
+
+	cd   /hana/shared/S03/global/hdb/install/bin/
+	
+	
+
+Exercise 3:  Tenant Distribution
+
+
+***********************************************Task 1:	Create Tenant database “BW9” in Distribution mode*******************************************
+
+
+create database BW9 at location  'hana-master-vm:30070' SYSTEM user password demoPassword1;
+alter database BW9 add 'indexserver' at location 'hana-worker-vm:30070';
+
+
+
+
+Exercise 4:  Table Distribution & Partition
+
+
+**********************************************Task 1:	Table Distribution by Range*****************************************************************
+
+
+		
+Step 1.1. 	Create Schema
+
+	Create schema DIST_TENT2
+		
+Step 1.2.	Create Coloum Table
+
+	CREATE COLUMN TABLE DIST_TENT2.EMPLOYEE ( id BIGINT NOT NULL, yearofjoin DATE, employeename NVARCHAR(500))  PARTITION BY RANGE (YEAR(yearofjoin)) (PARTITION VALUE = '2017', PARTITION VALUE ='2018')
+	
+	
+Step 1.3.	Insert the values into the Table.	
+
+		insert into DIST_TENT2.EMPLOYEE values (1, '2017-06-27', 'John');
+		insert into DIST_TENT2.EMPLOYEE values (2, '2017-08-27', 'Wong');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2017-01-27', 'Thomas');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2017-02-27', 'Lewis');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-01-27', 'Tobias');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-02-27', 'Miles');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-03-27', 'Lucas');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-04-27', 'Rhys');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-05-27', 'Nicholas');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-06-27', 'Charles');
+		insert into DIST_TENT2.EMPLOYEE values (3, '2018-07-27', 'Marcus');
+	
+		
+		
+		
